@@ -1,14 +1,10 @@
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`Missing required environment variable: ${name}`);
-  }
-  return value;
-}
+import { S3Client } from "@aws-sdk/client-s3";
+import { env } from "./env";
 
-export const env = {
-  AWS_REGION: requireEnv("AWS_REGION"),
-  AWS_ACCESS_KEY_ID: requireEnv("AWS_ACCESS_KEY_ID"),
-  AWS_SECRET_ACCESS_KEY: requireEnv("AWS_SECRET_ACCESS_KEY"),
-  S3_BUCKET_NAME: requireEnv("S3_BUCKET_NAME"),
-};
+export const s3 = new S3Client({
+    region: env.AWS_REGION,
+    credentials: {
+        accessKeyId: env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: env.AWS_SECRET_ACCESS_KEY
+    }
+});
