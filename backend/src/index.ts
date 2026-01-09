@@ -1,7 +1,9 @@
 import express from "express";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { SendMessageCommand } from "@aws-sdk/client-sqs";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3 } from "./s3";
+import { sqs } from "./sqs";
 import { env } from "./env";
 
 const app = express();
@@ -12,17 +14,28 @@ app.get("/heath", (req, res) => {
 })
 
 app.post("/upload/init", async (_req,res) => {
-    const key = `audio/${Date.now()}.wav`;
+    try {
+        const key = `audio/${Date.now()}.wav`;
 
-    const command = new PutObjectCommand({
-        Bucket: env.S3_BUCKET_NAME,
-        Key: key,
-        ContentType: "audio/wav"
-    });
+        const command = new PutObjectCommand({
+            Bucket: env.S3_BUCKET_NAME,
+            Key: key,
+            ContentType: "audio/wav"
+        });
 
-    const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 60 });
+        const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 60 });
 
-    res.json({ uploadUrl, key });
+        const message = new SendMessageCommand({
+            QueueUrl: env.SQS_QUEUE_URL,
+            MessageBody: JSON.stringify({ key })
+        });
+        await sqs.send(message);
+
+        res.json({ uploadUrl, key });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to init upload" });
+    }
 })
 
 app.listen(PORT, () => {
