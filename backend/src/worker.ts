@@ -1,4 +1,6 @@
 import { ReceiveMessageCommand, DeleteMessageCommand } from "@aws-sdk/client-sqs";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { s3 } from "./s3";
 import { sqs } from "./sqs";
 import { env } from "./env";
 
