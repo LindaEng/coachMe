@@ -19,7 +19,25 @@ async function pollQueue() {
     }
 
     for (const message of result.Messages) {
-        console.log("Received message: ", message.Body);
+        if(!message.Body) continue;
+
+        const { key } = JSON.parse(message.Body);
+        console.log("Processing file:", key);
+
+        const getObjectCommand = new GetObjectCommand({
+            Bucket: env.S3_BUCKET_NAME,
+            Key: key
+        })
+
+        const result = await s3.send(getObjectCommand);
+        const body = result.Body as any;
+
+        let size = 0;
+        for await (const chunk of body) {
+            size += chunk.length;
+        }
+
+        console.log("Downloaded file size: ", size, "bytes");
 
         if (message.ReceiptHandle) {
             const deleteCommand = new DeleteMessageCommand({
