@@ -9,6 +9,8 @@ import { env } from "./env";
 const app = express();
 const PORT = 3001;
 
+app.use(express.json());
+
 app.get("/heath", (req, res) => {
     res.json({status: "ok"})
 })
