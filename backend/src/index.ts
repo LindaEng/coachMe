@@ -27,16 +27,30 @@ app.post("/upload/init", async (_req,res) => {
 
         const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 60 });
 
-        const message = new SendMessageCommand({
-            QueueUrl: env.SQS_QUEUE_URL,
-            MessageBody: JSON.stringify({ key })
-        });
-        await sqs.send(message);
-
         res.json({ uploadUrl, key });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Failed to init upload" });
+    }
+})
+
+app.post("/upload/complete", async (req, res) => {
+    try {
+        const { key } = req.body;
+        if(!key) {
+            return res.status(400).json({ error: "Missing Key "});
+        }
+
+        const message = new SendMessageCommand({
+            QueueUrl: env.SQS_QUEUE_URL,
+            MessageBody: JSON.stringify({ key })
+        })
+
+        await sqs.send(message);
+        res.json({ status: "queued" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to enqueue the job "});
     }
 })
 
