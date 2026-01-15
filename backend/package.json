@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev src/index.ts",
-    "worker": "ts-node-dev src/worker.ts"
+    "worker": "ts-node-dev src/worker.ts",
+    "replayDlq": "ts-node-dev src/replayDlq.ts"
   },
   "keywords": [],
   "author": "",
