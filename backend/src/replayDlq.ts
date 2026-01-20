@@ -3,6 +3,8 @@ import {
     DeleteMessageCommand,
     SendMessageCommand
 } from "@aws-sdk/client-sqs";
+import { HeadObjectCommand } from "@aws-sdk/client-s3";
+import { s3 } from "./s3";
 import { sqs } from "./sqs";
 import { env } from "./env";
 
@@ -25,6 +27,20 @@ async function replayDlq() {
         if(!message.Body || !message.ReceiptHandle) continue;
 
         console.log("Replaying message: ", message.Body);
+
+        const { key } = JSON.parse(message.Body);
+
+        try{
+            await s3.send(
+                new HeadObjectCommand({
+                    Bucket: env.S3_BUCKET_NAME,
+                    Key: key
+                })
+            )
+        } catch {
+            console.log("Skipping replay, object still missing: ", key);
+            continue;
+        }
 
         const sendCommand = new SendMessageCommand({
             QueueUrl: env.SQS_QUEUE_URL,

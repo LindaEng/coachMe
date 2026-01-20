@@ -2,6 +2,8 @@ import express from "express";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { SendMessageCommand } from "@aws-sdk/client-sqs";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { PutItemCommand } from "@aws-sdk/client-dynamodb";
+import { db } from "./db";
 import { s3 } from "./s3";
 import { sqs } from "./sqs";
 import { env } from "./env";
@@ -45,6 +47,18 @@ app.post("/upload/complete", async (req, res) => {
             QueueUrl: env.SQS_QUEUE_URL,
             MessageBody: JSON.stringify({ key })
         })
+
+        await db.send(
+            new PutItemCommand({
+                TableName: env.JOBS_TABLE_NAME,
+                Item: {
+                    jobId: { S: key },
+                    status: { S: "PENDING" },
+                    createdAt: { N: Date.now().toString() },
+                    updatedAt: { N: Date.now().toString() }
+                }
+            })
+        )
 
         await sqs.send(message);
         res.json({ status: "queued" });

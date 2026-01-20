@@ -13,5 +13,6 @@ export const env = {
   AWS_SECRET_ACCESS_KEY: requireEnv("AWS_SECRET_ACCESS_KEY"),
   S3_BUCKET_NAME: requireEnv("S3_BUCKET_NAME"),
   SQS_QUEUE_URL: requireEnv("SQS_QUEUE_URL"),
-  SQS_DLQ_URL: requireEnv("SQS_DLQ_URL")
+  SQS_DLQ_URL: requireEnv("SQS_DLQ_URL"),
+  JOBS_TABLE_NAME: requireEnv("JOBS_TABLE_NAME")
 };
