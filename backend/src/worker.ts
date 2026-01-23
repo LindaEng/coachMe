@@ -1,12 +1,12 @@
 import { ReceiveMessageCommand, DeleteMessageCommand } from "@aws-sdk/client-sqs";
 import { GetItemCommand, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { processAudioJob } from "./jobs/processAudioJob";
 import { db } from "./db";
-import { s3 } from "./s3";
 import { sqs } from "./sqs";
 import { env } from "./env";
 
 async function pollQueue() {
+    //checks the queue
     const receiveCommand = new ReceiveMessageCommand({
         QueueUrl: env.SQS_QUEUE_URL,
         MaxNumberOfMessages: 1,
@@ -14,15 +14,15 @@ async function pollQueue() {
     });
 
     const result = await sqs.send(receiveCommand);
-
+    //if no messages
     if (!result.Messages || result.Messages.length === 0) {
         console.log("No Messages");
         return;
     }
-
+    //messages
     for (const message of result.Messages) {
         if(!message.Body) continue;
-
+        //extract key
         const { key } = JSON.parse(message.Body);
 
         //check job state
@@ -37,7 +37,7 @@ async function pollQueue() {
             console.log("Skipping job, already processed:", key);
             return;
         }
-        
+        //if pending - update to processing
         await db.send(
             new UpdateItemCommand({
                 TableName: env.JOBS_TABLE_NAME,
@@ -52,23 +52,7 @@ async function pollQueue() {
         )
 
         try {
-            console.log("Processing file:", key);
-
-            const getObjectCommand = new GetObjectCommand({
-                Bucket: env.S3_BUCKET_NAME,
-                Key: key
-            })
-
-            const result = await s3.send(getObjectCommand);
-            const body = result.Body as any;
-
-            let size = 0;
-            for await (const chunk of body) {
-                size += chunk.length;
-            }
-
-            console.log("Downloaded file size: ", size, "bytes");
-
+            await processAudioJob(key);
             await db.send(
                 new UpdateItemCommand({
                     TableName: env.JOBS_TABLE_NAME,
