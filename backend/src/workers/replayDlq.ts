@@ -4,9 +4,9 @@ import {
     SendMessageCommand
 } from "@aws-sdk/client-sqs";
 import { HeadObjectCommand } from "@aws-sdk/client-s3";
-import { s3 } from "./s3";
-import { sqs } from "./sqs";
-import { env } from "./env";
+import { s3 } from "../infra/s3";
+import { sqs } from "../infra/sqs";
+import { env } from "../env";
 
 
 async function replayDlq() {
