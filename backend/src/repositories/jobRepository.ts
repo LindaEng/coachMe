@@ -27,3 +27,26 @@ export async function updateJobStatus(jobId: string, status: string) {
     },
   }));
 }
+
+export async function saveJobOutput(
+  jobId: string,
+  transcript: string,
+  result: string
+) {
+  await db.send(
+    new UpdateItemCommand({
+      TableName: env.JOBS_TABLE_NAME,
+      Key: { jobId: { S: jobId } },
+      UpdateExpression: `
+        SET transcript = :t,
+            result = :r,
+            updatedAt = :u
+      `,
+      ExpressionAttributeValues: {
+        ":t": { S: transcript },
+        ":r": { S: result },
+        ":u": { N: Date.now().toString() },
+      },
+    })
+  );
+}
