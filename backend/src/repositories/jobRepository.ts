@@ -1,6 +1,17 @@
-import { UpdateItemCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
+import { UpdateItemCommand, PutItemCommand, GetItemCommand } from "@aws-sdk/client-dynamodb";
 import { db } from "../infra/db";
 import { env } from "../env";
+
+export async function getJob(jobId: string) {
+  const result = await db.send(
+    new GetItemCommand({
+      TableName: env.JOBS_TABLE_NAME,
+      Key: { jobId: { S: jobId } },
+    })
+  );
+
+  return result.Item;
+}
 
 export async function createJob(jobId: string, s3Key: string) {
   await db.send(new PutItemCommand({
