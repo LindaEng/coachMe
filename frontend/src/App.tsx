@@ -26,16 +26,16 @@ function App() {
     mediaRecorder.start();
     console.log("Recording started");
     setIsRecording(true);
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+      const url = URL.createObjectURL(blob);
+      setAudioUrl(url);
+    };
   }
 
   const stopRecording = () => {
     mediaRecorderRef.current?.stop();
-    console.log("Recording stopped");
     setIsRecording(false);
-    console.log("Chunks ", chunksRef.current);
-    const blob = new Blob(chunksRef.current, { type: "audio/webm"});
-    console.log("finalblob ", blob);
-
   }
 
   return (
@@ -53,6 +53,7 @@ function App() {
               disabled={!isRecording}
             >Stop Recording</button>
             <p>{isRecording ? "recording..." : ""}</p>
+            <p>{audioUrl && <audio controls src={audioUrl} />}</p>
           </div>
         </div>
       </div>
