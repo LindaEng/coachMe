@@ -1,11 +1,21 @@
+import OpenAI, { toFile } from "openai";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { openai } from "../infra/openai";
 import { s3 } from "../infra/s3";
 import { env } from "../env";
 import { saveJobOutput } from "../repositories/jobRepository";
 
-async function transcribeAudio(_audio: Buffer): Promise<string> {
-  // STUB — replace with AWS Transcribe later
-  return "This is a placeholder transcript of the coaching conversation.";
+async function transcribeAudio(audio: Buffer): Promise<string> {
+  const file = await toFile(audio, "audio.webm", {
+    type: "audio/webm"
+  })
+
+  const response = await openai.audio.transcriptions.create({
+    file,
+    model: "whisper-1"
+  })
+
+  return response.text;
 }
 
 async function runLLM(_transcript: string): Promise<string> {
@@ -52,10 +62,10 @@ export async function processAudioJob(
   const transcript = await transcribeAudio(audioBuffer);
   console.log(`Job ${jobId} transcript:`, transcript);
 
-  // 3️⃣ Run LLM
-  const llmResult = await runLLM(transcript);
-  console.log(`Job ${jobId} LLM result:`, llmResult);
+  // // 3️⃣ Run LLM
+  // const llmResult = await runLLM(transcript);
+  // console.log(`Job ${jobId} LLM result:`, llmResult);
 
   // 4️⃣ Save output
-  await saveJobOutput(jobId, transcript, llmResult);
+  await saveJobOutput(jobId, transcript, "");
 }

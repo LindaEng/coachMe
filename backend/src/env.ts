@@ -14,5 +14,6 @@ export const env = {
   S3_BUCKET_NAME: requireEnv("S3_BUCKET_NAME"),
   SQS_QUEUE_URL: requireEnv("SQS_QUEUE_URL"),
   SQS_DLQ_URL: requireEnv("SQS_DLQ_URL"),
-  JOBS_TABLE_NAME: requireEnv("JOBS_TABLE_NAME")
+  JOBS_TABLE_NAME: requireEnv("JOBS_TABLE_NAME"),
+  OPENAI_API_KEY: requireEnv("OPENAI_API_KEY")
 };
