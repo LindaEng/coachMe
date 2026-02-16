@@ -13,12 +13,12 @@ import { env } from "../env";
 export async function initUpload(_req: Request, res: Response) {
   try {
     const jobId = crypto.randomUUID();
-    const s3Key = `audio/${jobId}.mp3`;
+    const s3Key = `audio/${jobId}.webm`;
 
     const command = new PutObjectCommand({
       Bucket: env.S3_BUCKET_NAME,
       Key: s3Key,
-      ContentType: "audio/mpeg",
+      ContentType: "audio/webm",
     });
 
     const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 60 });
@@ -39,6 +39,7 @@ export async function completeUpload(req: Request, res: Response) {
     if (!jobId || !s3Key) {
       return res.status(400).json({ error: "Missing jobId or s3Key" });
     }
+    console.log("Queueing job:", jobId, s3Key);
 
     await updateJobStatus(jobId, "QUEUED");
 
