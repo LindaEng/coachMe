@@ -50,9 +50,12 @@ export async function saveJobOutput(
       Key: { jobId: { S: jobId } },
       UpdateExpression: `
         SET transcript = :t,
-            result = :r,
+            #r = :r,
             updatedAt = :u
       `,
+      ExpressionAttributeNames: {
+        "#r": "result"
+      },
       ExpressionAttributeValues: {
         ":t": { S: transcript },
         ":r": { S: result },

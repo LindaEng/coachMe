@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node-dev src/index.ts"
+    "dev": "ts-node-dev src/index.ts",
+    "worker": "ts-node-dev src/workers/worker.ts"
   },
   "keywords": [],
   "author": "",
@@ -16,11 +17,13 @@
     "@aws-sdk/client-s3": "^3.965.0",
     "@aws-sdk/client-sqs": "^3.965.0",
     "@aws-sdk/s3-request-presigner": "^3.965.0",
+    "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "multer": "^2.0.2"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/multer": "^2.0.0",
     "@types/node": "^25.0.3",

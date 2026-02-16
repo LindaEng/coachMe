@@ -10,14 +10,14 @@ export function useAudioRecorder() {
 
 const uploadAudio = async(blob: Blob) => {
     try{
-        const initRes = await fetch("http://localhost:3000/upload/init", {
+        const initRes = await fetch("http://localhost:3001/upload/init", {
             method: "POST",
         });
 
         const { uploadUrl, s3Key, jobId } = await initRes.json();
 
-        //upload to s3
-        await fetch(uploadUrl, {
+        // upload to s3
+        const uploadRes = await fetch(uploadUrl, {
             method: "PUT",
             body: blob,
             headers: {
@@ -25,8 +25,14 @@ const uploadAudio = async(blob: Blob) => {
             }
         });
 
+        console.log("S3 status:", uploadRes.status);
+
+        if (!uploadRes.ok) {
+            throw new Error(`S3 upload failed with status ${uploadRes.status}`);
+        }
+
         //tell backend upload is completed
-        await fetch("http://localhost:3000/upload/complete", {
+        await fetch("http://localhost:3001/upload/complete", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -64,7 +70,7 @@ const uploadAudio = async(blob: Blob) => {
       setAudioUrl(url);
 
       mediaRecorder.stream.getTracks().forEach(track => track.stop());
-      
+
       await uploadAudio(blob);
     };
   }
