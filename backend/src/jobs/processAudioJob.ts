@@ -18,24 +18,39 @@ async function transcribeAudio(audio: Buffer): Promise<string> {
   return response.text;
 }
 
-async function runLLM(_transcript: string): Promise<string> {
-  return `
-Summary:
-- Reviewed interview performance
-- Identified communication gaps
+async function runLLM(transcript: string): Promise<string> {
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      {
+        role: "system",
+        content: `
+            You are a professional executive coach.
+            Summarize the following coaching conversation.
+            Return:
 
-Action Items:
-1. Practice concise answers
-2. Clarify impact in examples
-3. Prepare STAR stories
-`;
+            1. A short summary
+            2. 3–5 key insights
+            3. Clear action items
+        `.trim(),
+      },
+      {
+        role: "user",
+        content: transcript,
+      },
+    ],
+    temperature: 0.2,
+    max_tokens: 100
+  });
+
+  return response.choices[0].message.content || "";
 }
 
 export async function processAudioJob(
   jobId: string,
   s3Key: string
 ) {
-  // 1️⃣ Download audio from S3
+  //Download audio from S3
   const result = await s3.send(
     new GetObjectCommand({
       Bucket: env.S3_BUCKET_NAME,
@@ -58,14 +73,14 @@ export async function processAudioJob(
     "bytes"
   );
 
-  // 2️⃣ Transcribe audio
+  //Transcribe audio
   const transcript = await transcribeAudio(audioBuffer);
   console.log(`Job ${jobId} transcript:`, transcript);
 
-  // // 3️⃣ Run LLM
-  // const llmResult = await runLLM(transcript);
-  // console.log(`Job ${jobId} LLM result:`, llmResult);
+  //Run LLM
+  const llmResult = await runLLM(transcript);
+  console.log(`Job ${jobId} LLM result:`, llmResult);
 
-  // 4️⃣ Save output
-  await saveJobOutput(jobId, transcript, "");
+  //Save output
+  await saveJobOutput(jobId, transcript, llmResult);
 }
