@@ -1,4 +1,5 @@
 import { UpdateItemCommand, PutItemCommand, GetItemCommand } from "@aws-sdk/client-dynamodb";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { db } from "../infra/db";
 import { env } from "../env";
 
@@ -10,7 +11,9 @@ export async function getJob(jobId: string) {
     })
   );
 
-  return result.Item;
+  if(!result.Item) return null;
+
+  return unmarshall(result.Item);
 }
 
 export async function createJob(jobId: string, s3Key: string) {

@@ -41,12 +41,13 @@ const uploadAudio = async(blob: Blob) => {
         })
 
         console.log("UPLOAD COMPLETED AND JOB QUEUED ", jobId);
+        await pollJob(jobId)
     } catch (err) {
         console.error("Upload failed:", err);
     }
   }
 
-  const startRecording = async () => {
+const startRecording = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
 
     const mediaRecorder = new MediaRecorder(stream);
@@ -75,10 +76,25 @@ const uploadAudio = async(blob: Blob) => {
     };
   }
 
-  const stopRecording = () => {
+const stopRecording = () => {
     mediaRecorderRef.current?.stop();
     setIsRecording(false);
-  }
+}
+
+const pollJob = async (jobId: string) => {
+    const res = await fetch(`http://localhost:3001/jobs/${jobId}`);
+    const job = await res.json();
+
+    const status = job.status;
+    console.log("Job Status: ", status);
+
+    if(status !== "SUCCEEDED" && status !== "FAILED") {
+        setTimeout(() => pollJob(jobId), 2000);
+    } else {
+        console.log("Final Transcript: ", job.transcript);
+        console.log("Final result:", job.result);
+    }
+}
 
 
 
