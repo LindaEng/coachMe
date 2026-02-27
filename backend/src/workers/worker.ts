@@ -1,7 +1,7 @@
 import { ReceiveMessageCommand, DeleteMessageCommand } from "@aws-sdk/client-sqs";
 import { sqs } from "../infra/sqs";
 import { env } from "../env";
-import { processAudioJob } from "../jobs/processAudioJob";
+import { processAudioJob } from "../services/processAudioJob";
 import { updateJobStatus } from "../repositories/jobRepository";
 
 async function pollQueue() {

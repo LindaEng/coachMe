@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { initUpload, completeUpload } from "../services/uploadService";
+import { initUpload, completeUpload } from "../controller/uploadController";
 
 const router = Router();
 

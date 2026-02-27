@@ -15,5 +15,6 @@ export const env = {
   SQS_QUEUE_URL: requireEnv("SQS_QUEUE_URL"),
   SQS_DLQ_URL: requireEnv("SQS_DLQ_URL"),
   JOBS_TABLE_NAME: requireEnv("JOBS_TABLE_NAME"),
-  OPENAI_API_KEY: requireEnv("OPENAI_API_KEY")
+  OPENAI_API_KEY: requireEnv("OPENAI_API_KEY"),
+  RESEND_API_KEY: requireEnv("RESEND_API_KEY")
 };
