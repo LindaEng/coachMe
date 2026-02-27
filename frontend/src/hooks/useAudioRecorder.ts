@@ -4,14 +4,19 @@ export function useAudioRecorder() {
   const [isRecording, setIsRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [email, setEmail] = useState<string>("");
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
-const uploadAudio = async(blob: Blob) => {
+const uploadAudio = async(blob: Blob, email: string) => {
     try{
         const initRes = await fetch("http://localhost:3001/upload/init", {
             method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email })
         });
 
         const { uploadUrl, s3Key, jobId } = await initRes.json();
@@ -72,7 +77,6 @@ const startRecording = async () => {
 
       mediaRecorder.stream.getTracks().forEach(track => track.stop());
 
-      await uploadAudio(blob);
     };
   }
 
@@ -103,7 +107,10 @@ const pollJob = async (jobId: string) => {
     audioUrl,
     audioBlob,
     startRecording,
-    stopRecording
+    stopRecording,
+    email,
+    setEmail,
+    uploadAudio,
   }
 }
 

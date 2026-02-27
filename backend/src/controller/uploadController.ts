@@ -10,10 +10,11 @@ import { s3 } from "../infra/s3";
 import { sqs } from "../infra/sqs";
 import { env } from "../env";
 
-export async function initUpload(_req: Request, res: Response) {
+export async function initUpload(req: Request, res: Response) {
   try {
     const jobId = crypto.randomUUID();
     const s3Key = `audio/${jobId}.webm`;
+    const { email } = req.body;
 
     const command = new PutObjectCommand({
       Bucket: env.S3_BUCKET_NAME,
@@ -23,7 +24,7 @@ export async function initUpload(_req: Request, res: Response) {
 
     const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 60 });
 
-    await createJob(jobId, s3Key);
+    await createJob(jobId, s3Key, email);
 
     res.json({ jobId, s3Key, uploadUrl });
   } catch (err) {

@@ -16,13 +16,14 @@ export async function getJob(jobId: string) {
   return unmarshall(result.Item);
 }
 
-export async function createJob(jobId: string, s3Key: string) {
+export async function createJob(jobId: string, s3Key: string, email: string) {
   await db.send(new PutItemCommand({
     TableName: env.JOBS_TABLE_NAME,
     Item: {
       jobId: { S: jobId },
       s3Key: { S: s3Key },
       status: { S: "UPLOADING" },
+      email: { S: email},
       createdAt: { N: Date.now().toString() },
       updatedAt: { N: Date.now().toString() },
     }

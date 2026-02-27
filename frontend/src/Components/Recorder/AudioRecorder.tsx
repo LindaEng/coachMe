@@ -5,10 +5,26 @@ function AudioRecorder() {
   const {
     isRecording,
     audioUrl,
+    audioBlob,
     startRecording,
-    stopRecording
+    stopRecording,
+    email,
+    setEmail,
+    uploadAudio
   } = useAudioRecorder();
 
+  const handleConfirm = async () => {
+    if(!audioBlob) return;
+    if(!email) {
+      alert("Please enter an email")
+      return;
+    }
+    await uploadAudio(audioBlob, email);
+  }
+
+  const handleReset = () => {
+    window.location.reload();
+  }
   return (
     <>
       <div>
@@ -24,7 +40,22 @@ function AudioRecorder() {
               disabled={!isRecording}
             >Stop Recording</button>
             <p>{isRecording ? "recording..." : ""}</p>
-            <p>{audioUrl && <audio controls src={audioUrl} />}</p>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder='Enter recipient email'
+              required
+            />
+            <p>{audioUrl && 
+              <>
+                <audio controls src={audioUrl} />
+                <div>
+                  <button onClick={handleConfirm}>Confirm & Send</button>
+                  <button onClick={handleReset}>Reset</button>
+                </div>
+              </>
+            }</p>
           </div>
         </div>
       </div>

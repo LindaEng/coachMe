@@ -3,43 +3,55 @@ import { s3 } from "../infra/s3";
 import { env } from "../env";
 import { transcribe } from "../services/transcriptionService";
 import { summarize } from "../services/summarizationService";
-import { saveJobOutput } from "../repositories/jobRepository";
+import { getJob, saveJobOutput } from "../repositories/jobRepository";
+import { sendEmail } from "./emailService";
 
 export async function processAudioJob(
-  jobId: string,
-  s3Key: string
+    jobId: string,
+    s3Key: string
 ) {
-  //Download audio from S3
-  const result = await s3.send(
-    new GetObjectCommand({
-      Bucket: env.S3_BUCKET_NAME,
-      Key: s3Key,
-    })
-  );
+    //Fetch job 
+    const job = await getJob(jobId);
 
-  const body = result.Body as any;
-  const chunks: Buffer[] = [];
+    if(!job?.email) {
+        console.warn(`No email found for job ${jobId}`);
+        return;
+    }
 
-  for await (const chunk of body) {
-    chunks.push(chunk);
-  }
+    // download audio
+    const result = await s3.send(
+        new GetObjectCommand({
+            Bucket: env.S3_BUCKET_NAME,
+            Key: s3Key
+        })
+    );
 
-  const audioBuffer = Buffer.concat(chunks);
+    const body = result.Body as any;
+    const chunks: Buffer[] = [];
 
-  console.log(
-    `Job ${jobId} downloaded file size:`,
-    audioBuffer.length,
-    "bytes"
-  );
+    for await (const chunk of body) {
+        chunks.push(chunk);
+    }
 
-  //Transcribe audio
-  const transcript = await transcribe(audioBuffer);
-  console.log(`Job ${jobId} transcript:`, transcript);
+    const audioBuffer = Buffer.concat(chunks);
 
-  //Run LLM
-  const llmResult = await summarize(transcript);
-  console.log(`Job ${jobId} LLM result:`, llmResult);
+    // transcribe
+    const transcript = await transcribe(audioBuffer);
 
-  //Save output
-  await saveJobOutput(jobId, transcript, llmResult);
+    // summarize
+    const llmResult = await summarize(transcript);
+
+    // persist output
+    await saveJobOutput(jobId, transcript, llmResult);
+
+    // send email
+    try {
+        await sendEmail(
+            job.email,
+            "Your Coaching Summary",
+            llmResult
+        )
+    } catch (error) {
+        console.error(`Email failed for job ${jobId}:`, error);
+    }
 }

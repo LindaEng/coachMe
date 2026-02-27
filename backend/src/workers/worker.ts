@@ -1,7 +1,7 @@
 import { ReceiveMessageCommand, DeleteMessageCommand } from "@aws-sdk/client-sqs";
 import { sqs } from "../infra/sqs";
 import { env } from "../env";
-import { processAudioJob } from "../services/processAudioJob";
+import { processAudioJob } from "../services/audioProcessingService";
 import { updateJobStatus } from "../repositories/jobRepository";
 
 async function pollQueue() {
@@ -44,7 +44,11 @@ async function pollQueue() {
 async function start() {
   console.log("Worker started");
   while (true) {
-    await pollQueue();
+    try {
+      await pollQueue();
+    } catch (err) {
+      console.error("Worker error:", err);
+    }
   }
 }
 
