@@ -5,10 +5,14 @@ export async function sendEmail(
   subject: string,
   body: string
 ) {
-  await resend.emails.send({
-    from: "onboarding@resend.dev", 
+  console.log("Sending email to:", to);
+
+  const response = await resend.emails.send({
+    from: "noreply@lindaos.dev",
     to,
     subject,
     text: body,
   });
+
+  console.log("Resend response:", response);
 }
