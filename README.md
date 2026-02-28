@@ -65,9 +65,3 @@ If you are reviewing this project, useful places to start include:
 - Logging and observability decisions
 
 
-###
-user records
-media uploads to s3[stream chunks of audio] + (jobId, s3Key, email) DynamoDb
-media s3 -> OpenAI whisper (transcribes audio) -> OpenAi LLM (prompt engineering)
-updates dynamoDB (job status, trasncription/feedback)
-emails the recipient
