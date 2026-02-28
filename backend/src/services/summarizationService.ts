@@ -22,7 +22,7 @@ export async function summarize(transcript: string): Promise<string> {
       },
     ],
     temperature: 0.2,
-    max_tokens: 100
+    max_tokens: 400
   });
   return response.choices[0]?.message?.content ?? "";
 }

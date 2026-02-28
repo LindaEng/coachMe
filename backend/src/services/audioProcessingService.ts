@@ -12,12 +12,10 @@ export async function processAudioJob(
 ) {
     //Fetch job 
     const job = await getJob(jobId);
-
     if(!job?.email) {
         console.warn(`No email found for job ${jobId}`);
         return;
     }
-
     // download audio
     const result = await s3.send(
         new GetObjectCommand({
@@ -25,25 +23,18 @@ export async function processAudioJob(
             Key: s3Key
         })
     );
-
     const body = result.Body as any;
     const chunks: Buffer[] = [];
-
     for await (const chunk of body) {
         chunks.push(chunk);
     }
-
     const audioBuffer = Buffer.concat(chunks);
-
     // transcribe
     const transcript = await transcribe(audioBuffer);
-
     // summarize
     const llmResult = await summarize(transcript);
-
     // persist output
     await saveJobOutput(jobId, transcript, llmResult);
-
     // send email
     try {
         await sendEmail(

@@ -2,9 +2,8 @@ import crypto from "crypto";
 import { Request, Response } from "express";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { SendMessageCommand } from "@aws-sdk/client-sqs";
 
-import { createJob, updateJobStatus } from "../repositories/jobRepository";
+import { createJob } from "../repositories/jobRepository";
 
 import { s3 } from "../infra/s3";
 import { sqs } from "../infra/sqs";
@@ -33,27 +32,4 @@ export async function initUpload(req: Request, res: Response) {
   }
 }
 
-export async function completeUpload(req: Request, res: Response) {
-  try {
-    const { jobId, s3Key } = req.body;
 
-    if (!jobId || !s3Key) {
-      return res.status(400).json({ error: "Missing jobId or s3Key" });
-    }
-    console.log("Queueing job:", jobId, s3Key);
-
-    await updateJobStatus(jobId, "QUEUED");
-
-    await sqs.send(
-      new SendMessageCommand({
-        QueueUrl: env.SQS_QUEUE_URL,
-        MessageBody: JSON.stringify({ jobId, s3Key }),
-      })
-    );
-
-    res.json({ status: "queued", jobId });
-  } catch (err) {
-    console.error("completeUpload error:", err);
-    res.status(500).json({ error: "Failed to complete upload" });
-  }
-}

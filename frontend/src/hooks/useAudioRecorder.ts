@@ -18,9 +18,7 @@ const uploadAudio = async(blob: Blob, email: string) => {
             },
             body: JSON.stringify({ email })
         });
-
-        const { uploadUrl, s3Key, jobId } = await initRes.json();
-
+        const { uploadUrl, jobId } = await initRes.json();
         // upload to s3
         const uploadRes = await fetch(uploadUrl, {
             method: "PUT",
@@ -29,24 +27,12 @@ const uploadAudio = async(blob: Blob, email: string) => {
                 "Content-Type": "audio/webm"
             }
         });
-
-        console.log("S3 status:", uploadRes.status);
-
         if (!uploadRes.ok) {
             throw new Error(`S3 upload failed with status ${uploadRes.status}`);
         }
-
-        //tell backend upload is completed
-        await fetch("http://localhost:3001/upload/complete", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ jobId, s3Key })
-        })
-
-        console.log("UPLOAD COMPLETED AND JOB QUEUED ", jobId);
-        await pollJob(jobId)
+        pollJob(jobId);
+        setAudioBlob(null);
+        setAudioUrl(null);
     } catch (err) {
         console.error("Upload failed:", err);
     }
@@ -86,19 +72,24 @@ const stopRecording = () => {
 }
 
 const pollJob = async (jobId: string) => {
-    const res = await fetch(`http://localhost:3001/jobs/${jobId}`);
-    const job = await res.json();
+  const res = await fetch(`http://localhost:3001/jobs/${jobId}`);
+  const job = await res.json();
 
-    const status = job.status;
-    console.log("Job Status: ", status);
+  console.log("Job Status:", job.status);
 
-    if(status !== "SUCCEEDED" && status !== "FAILED") {
-        setTimeout(() => pollJob(jobId), 2000);
-    } else {
-        console.log("Final Transcript: ", job.transcript);
-        console.log("Final result:", job.result);
-    }
-}
+  if (job.status === "SUCCEEDED") {
+    console.log("Transcript:", job.transcript);
+    console.log("Result:", job.result);
+    return;
+  }
+
+  if (job.status === "FAILED") {
+    console.log("Job failed.");
+    return;
+  }
+
+  setTimeout(() => pollJob(jobId), 2000);
+};
 
 
 
